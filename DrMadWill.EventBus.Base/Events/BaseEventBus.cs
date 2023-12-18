@@ -11,7 +11,7 @@ public abstract class BaseEventBus : IEventBus
     public readonly IEventBusSubscriptionManager SubManager;
     public EventBusConfig EventBusConfig;
 
-    public BaseEventBus(EventBusConfig config,IServiceProvider serviceProvider)
+    public BaseEventBus(EventBusConfig config, IServiceProvider serviceProvider)
     {
         EventBusConfig = config;
         ServiceProvider = serviceProvider;
@@ -49,7 +49,7 @@ public abstract class BaseEventBus : IEventBus
                 foreach (var subscription in subscriptions)
                 {
                     var handler = ServiceProvider.GetService(subscription.HandlerType);
-                    if(handler == null) continue;
+                    if (handler == null) continue;
                     var eventType =
                         SubManager.GetEventTypeByName(
                             $"{EventBusConfig.EventNamePrefix}{eventName}{EventBusConfig.EventNameSuffix}");
@@ -68,5 +68,5 @@ public abstract class BaseEventBus : IEventBus
 
     public abstract void Subscribe<T, TH>() where T : IntegrationEvent where TH : IIntegrationEventHandler<T>;
 
-    public abstract  void UnSubscribe<T, TH>() where T : IntegrationEvent where TH : IIntegrationEventHandler<T>;
+    public abstract void UnSubscribe<T, TH>() where T : IntegrationEvent where TH : IIntegrationEventHandler<T>;
 }

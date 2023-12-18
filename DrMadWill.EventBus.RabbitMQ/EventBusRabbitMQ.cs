@@ -1,5 +1,7 @@
 using System.Net.Sockets;
 using System.Text;
+using DrMadWill.EventBus.Base;
+using DrMadWill.EventBus.Base.Events;
 using Newtonsoft.Json;
 using Polly;
 using RabbitMQ.Client;

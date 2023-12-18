@@ -7,12 +7,12 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
 {
     private readonly Dictionary<string, List<SubscriptionInfo>> _handlers;
     private readonly List<Type> _eventTypes;
-    
-    
+
     public event EventHandler<string>? OnEventRemoved;
+
     public Func<string, string> EventNameGetter;
 
-    public InMemoryEventBusSubscriptionManager(Func<string,string> eventNameGetter)
+    public InMemoryEventBusSubscriptionManager(Func<string, string> eventNameGetter)
     {
         _handlers = new Dictionary<string, List<SubscriptionInfo>>();
         _eventTypes = new List<Type>();
@@ -20,12 +20,13 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
     }
 
     public bool IsEmpty => !_handlers.Keys.Any();
+
     public void Clear() => _handlers.Clear();
-    
+
     public void AddSubscription<T, TH>() where T : IntegrationEvent where TH : IIntegrationEventHandler<T>
     {
         var eventName = GetEventKey<T>();
-        AddSubscription(typeof(TH),eventName);
+        AddSubscription(typeof(TH), eventName);
 
         if (!_eventTypes.Contains(typeof(T)))
         {
@@ -37,7 +38,7 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
     {
         if (!HasSubscriptionForEvent(eventName))
         {
-            _handlers.Add(eventName,new List<SubscriptionInfo>());
+            _handlers.Add(eventName, new List<SubscriptionInfo>());
         }
 
         if (_handlers[eventName].Any(s => s.HandlerType == handlerType))
@@ -53,12 +54,11 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
     {
         var handlerRoRemove = FindSubscriptionToRemove<T, TH>();
         var eventName = GetEventKey<T>();
-        RemoveHandler(eventName,handlerRoRemove);
+        RemoveHandler(eventName, handlerRoRemove);
     }
 
     private void RemoveHandler(string eventName, SubscriptionInfo? subsToRemove)
     {
-
         if (subsToRemove != null)
         {
             _handlers[eventName].Remove(subsToRemove);
@@ -74,10 +74,8 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
                 RaiseOnEventRemoved(eventName);
             }
         }
-
     }
-    
-    
+
     public IEnumerable<SubscriptionInfo> GetHandlerForEvent<T>() where T : IntegrationEvent
     {
         var key = GetEventKey<T>();
@@ -86,11 +84,10 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
 
     public IEnumerable<SubscriptionInfo> GetHandlerForEvent(string eventName) => _handlers[eventName];
 
-
     private void RaiseOnEventRemoved(string eventName)
     {
         var handler = OnEventRemoved;
-        handler?.Invoke(this,eventName);
+        handler?.Invoke(this, eventName);
     }
 
     private SubscriptionInfo? FindSubscriptionToRemove<T, TH>()
@@ -107,7 +104,6 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
         return _handlers[eventName].SingleOrDefault(s => s.HandlerType == handlerType);
     }
 
-
     public bool HasSubscriptionForEvent<T>() where T : IntegrationEvent
     {
         var key = GetEventKey<T>();
@@ -119,7 +115,6 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
 
     public Type? GetEventTypeByName(string eventName) => _eventTypes.SingleOrDefault(s => s.Name == eventName);
 
-    
     public string GetEventKey<T>()
     {
         string eventName = typeof(T).Name;

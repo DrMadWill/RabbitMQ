@@ -13,5 +13,4 @@ public class SubscriptionInfo
     {
         return new SubscriptionInfo(handlerType);
     }
-
 }
