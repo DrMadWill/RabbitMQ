@@ -11,8 +11,8 @@ public class RabbitMqPersistentConnection : IDisposable
     private IConnection _connection;
     private readonly IConnectionFactory _connectionFactory;
     private readonly int _tryCount;
-    private object lock_object = new object();
-    private bool isDisposed = false;
+    private readonly object _lockObject = new object();
+    private bool _isDisposed = false;
     public RabbitMqPersistentConnection(IConnectionFactory connectionFactory,int tryCount = 5)
     {
         _connectionFactory = connectionFactory;
@@ -28,14 +28,14 @@ public class RabbitMqPersistentConnection : IDisposable
 
     public void Dispose()
     {
-        isDisposed = true;
+        _isDisposed = true;
         _connection.Dispose();
     }
 
     public bool TryConnect()
     {
 
-        lock (lock_object)
+        lock (_lockObject)
         {
             var policy = Policy.Handle<SocketException>()
                 .Or<BrokerUnreachableException>()
@@ -66,19 +66,19 @@ public class RabbitMqPersistentConnection : IDisposable
 
     private void Connection_ConnectionBlocked(object? sender, ConnectionBlockedEventArgs e)
     {
-        if(isDisposed) return;
+        if(_isDisposed) return;
         TryConnect();
     }
 
     private void Connection_CallbackException(object? sender, CallbackExceptionEventArgs e)
     {
-        if(isDisposed) return;
+        if(_isDisposed) return;
         TryConnect();
     }
 
     private void Connection_ConnectionShutdown(object? sender, ShutdownEventArgs e)
     {
-        if(isDisposed) return;
+        if(_isDisposed) return;
         TryConnect();
     }
 }

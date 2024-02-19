@@ -10,12 +10,12 @@ using RabbitMQ.Client.Exceptions;
 
 namespace DrMadWill.EventBus.RabbitMQ;
 
-public class EventBusRabbitMQ : BaseEventBus
+public class EventBusRabbitMq : BaseEventBus
 {
-    private RabbitMqPersistentConnection _persistentConnection;
+    private readonly RabbitMqPersistentConnection _persistentConnection;
     private readonly IConnectionFactory _connectionFactory;
     private readonly IModel _consumerChannel;
-    public EventBusRabbitMQ(EventBusConfig config, IServiceProvider serviceProvider) : base(config, serviceProvider)
+    public EventBusRabbitMq(EventBusConfig config, IServiceProvider serviceProvider) : base(config, serviceProvider)
     {
         if (config.Connection != null)
         {
@@ -61,7 +61,11 @@ public class EventBusRabbitMQ : BaseEventBus
                 });
         var eventName = @event.GetType().Name;
         eventName = ProcessEventName(eventName);
+        
         _consumerChannel.ExchangeDeclare(exchange:EventBusConfig.DefaultTopicName,type:"direct");
+       
+        
+        
         var message = JsonConvert.SerializeObject(@event);
         var body = Encoding.UTF8.GetBytes(message);
         policy.Execute(() =>
@@ -69,11 +73,16 @@ public class EventBusRabbitMQ : BaseEventBus
 
             var props = _consumerChannel.CreateBasicProperties();
             props.DeliveryMode = 2;
-            _consumerChannel.QueueDeclare(queue: GetSubName(eventName),
-                durable: true,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
+            
+            // _consumerChannel.QueueDeclare(queue: GetSubName(eventName),
+            //     durable: true,
+            //     exclusive: false,
+            //     autoDelete: false,
+            //     arguments: null);
+            //
+            // _consumerChannel.QueueBind(queue: GetSubName(eventName), exchange: EventBusConfig.DefaultTopicName,
+            //     routingKey: eventName);
+            
             _consumerChannel.BasicPublish(exchange: EventBusConfig.DefaultTopicName, routingKey: eventName,
                 mandatory: true, basicProperties: props, body: body);
         }); 
@@ -97,8 +106,8 @@ public class EventBusRabbitMQ : BaseEventBus
                 autoDelete: false,
                 arguments: null);
 
-            _consumerChannel.QueueBind(queue:GetSubName(eventName),exchange:EventBusConfig.DefaultTopicName,
-                routingKey:eventName);
+            _consumerChannel.QueueBind(queue: GetSubName(eventName), exchange: EventBusConfig.DefaultTopicName,
+                routingKey: eventName);
             SubManager.AddSubscription<T,TH>();
             StartBasicConsume(eventName);
         }
