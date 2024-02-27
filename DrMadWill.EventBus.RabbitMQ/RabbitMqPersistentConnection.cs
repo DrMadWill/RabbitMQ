@@ -50,16 +50,12 @@ public class RabbitMqPersistentConnection : IDisposable
                 _connection = _connectionFactory.CreateConnection();
             });
 
-            if (IsConnection)
-            {
-                _connection.ConnectionShutdown += Connection_ConnectionShutdown; 
-                _connection.CallbackException += Connection_CallbackException; 
-                _connection.ConnectionBlocked += Connection_ConnectionBlocked; 
+            if (!IsConnection) return false;
+            _connection.ConnectionShutdown += Connection_ConnectionShutdown; 
+            _connection.CallbackException += Connection_CallbackException; 
+            _connection.ConnectionBlocked += Connection_ConnectionBlocked; 
                 
-                return true;
-            }
-
-            return false;
+            return true;
 
         }
     }

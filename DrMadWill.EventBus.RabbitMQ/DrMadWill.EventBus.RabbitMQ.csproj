@@ -9,8 +9,9 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <Description>DrMadWill Special</Description>
         <RepositoryUrl>https://github.com/DrMadWill/RabbitMQ</RepositoryUrl>
-        <Version>1.1.0</Version>
+        <Version>1.4</Version>
         <Authors>DrMadWill</Authors>
+        <PackageIcon>Dr.png</PackageIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,13 +19,20 @@
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
       </None>
+      <None Update="Dr.png">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="DrMadWill.EventBus.Base" Version="1.0.0" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="Polly" Version="6.1.2" />
       <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\DrMadWill.EventBus.Base\DrMadWill.EventBus.Base.csproj" />
     </ItemGroup>
 
 </Project>

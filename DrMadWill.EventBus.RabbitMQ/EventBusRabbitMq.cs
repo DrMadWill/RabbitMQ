@@ -13,22 +13,10 @@ namespace DrMadWill.EventBus.RabbitMQ;
 public class EventBusRabbitMq : BaseEventBus
 {
     private readonly RabbitMqPersistentConnection _persistentConnection;
-    private readonly IConnectionFactory _connectionFactory;
     private readonly IModel _consumerChannel;
-    public EventBusRabbitMq(EventBusConfig config, IServiceProvider serviceProvider) : base(config, serviceProvider)
+    public EventBusRabbitMq(EventBusConfig config, IServiceProvider serviceProvider, IConnectionFactory connectionFactory) : base(config, serviceProvider)
     {
-        if (config.Connection != null)
-        {
-            var connJson = JsonConvert.SerializeObject(EventBusConfig.Connection, new JsonSerializerSettings()
-            {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-            });
-            _connectionFactory = JsonConvert.DeserializeObject<ConnectionFactory>(connJson);
-        }
-        else
-            _connectionFactory = new ConnectionFactory();
-
-        _persistentConnection = new RabbitMqPersistentConnection(_connectionFactory,config.ConnectionRetryCount);
+        _persistentConnection = new RabbitMqPersistentConnection(connectionFactory,config.ConnectionRetryCount);
         _consumerChannel = CreateConsumerChannel();
         SubManager.OnEventRemoved += Submanger_OnEventRemoved;
     }
@@ -108,9 +96,10 @@ public class EventBusRabbitMq : BaseEventBus
 
             _consumerChannel.QueueBind(queue: GetSubName(eventName), exchange: EventBusConfig.DefaultTopicName,
                 routingKey: eventName);
-            SubManager.AddSubscription<T,TH>();
-            StartBasicConsume(eventName);
+            
         }
+        SubManager.AddSubscription<T,TH>();  
+        StartBasicConsume(eventName);
     }
 
     private void StartBasicConsume(string eventName)

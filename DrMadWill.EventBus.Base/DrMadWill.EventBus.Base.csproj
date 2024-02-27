@@ -5,18 +5,25 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Title>DrMadWill RabbitMQ</Title>
+    <Title>DrMadWill.EventBus.Base</Title>
     <RepositoryUrl>https://github.com/DrMadWill/RabbitMQ</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <PackageTags>last</PackageTags>
     <Description>DrMadWill Special</Description>
+    <Authors>DrMadWill</Authors>
+    <PackageIcon>Dr.png</PackageIcon>
+    <Version>1.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Dr.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
     </None>
   </ItemGroup>
 

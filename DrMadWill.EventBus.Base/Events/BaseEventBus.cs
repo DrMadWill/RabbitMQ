@@ -20,10 +20,12 @@ public abstract class BaseEventBus : IEventBus
 
     public virtual string ProcessEventName(string eventName)
     {
-        if (EventBusConfig.DeleteEventPrefix)
-            eventName = eventName.TrimStart(EventBusConfig.EventNamePrefix.ToArray());
-        if (EventBusConfig.DeleteEventSuffix)
-            eventName = eventName.TrimStart(EventBusConfig.EventNameSuffix.ToArray());
+        if (EventBusConfig.DeleteEventPrefix && eventName.Contains(EventBusConfig.EventNamePrefix))
+            eventName = eventName[(EventBusConfig.EventNamePrefix.Length - 1)..];
+        if (EventBusConfig.DeleteEventSuffix && eventName.Contains(EventBusConfig.EventNameSuffix))
+            eventName = eventName[..eventName.IndexOf(EventBusConfig.EventNameSuffix, StringComparison.Ordinal)];
+        if (eventName.Contains(EventBusConfig.SubscriberClientAppName))
+            eventName = eventName.Replace(EventBusConfig.SubscriberClientAppName + ".", "");
         return eventName;
     }
 
@@ -41,12 +43,13 @@ public abstract class BaseEventBus : IEventBus
     {
         eventName = ProcessEventName(eventName);
         var processed = false;
-        if (SubManager.HasSubscriptionForEvent(eventName))
+        if (!SubManager.HasSubscriptionForEvent(eventName)) return processed;
+        var subscriptions = SubManager.GetHandlerForEvent(eventName);
+        using (var scope = ServiceProvider.CreateScope())
         {
-            var subscriptions = SubManager.GetHandlerForEvent(eventName);
-            using (var scope = ServiceProvider.CreateScope())
+            foreach (var subscription in subscriptions)
             {
-                foreach (var subscription in subscriptions)
+                try
                 {
                     var handler = ServiceProvider.GetService(subscription.HandlerType);
                     if (handler == null) continue;
@@ -56,11 +59,17 @@ public abstract class BaseEventBus : IEventBus
                     var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
                     var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
                     await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
+
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    
                 }
             }
-
-            processed = true;
         }
+
+        processed = true;
         return processed;
     }
 
