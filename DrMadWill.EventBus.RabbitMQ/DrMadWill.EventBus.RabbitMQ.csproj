@@ -9,7 +9,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <Description>DrMadWill Special</Description>
         <RepositoryUrl>https://github.com/DrMadWill/RabbitMQ</RepositoryUrl>
-        <Version>1.4</Version>
+        <Version>1.4.1</Version>
         <Authors>DrMadWill</Authors>
         <PackageIcon>Dr.png</PackageIcon>
     </PropertyGroup>

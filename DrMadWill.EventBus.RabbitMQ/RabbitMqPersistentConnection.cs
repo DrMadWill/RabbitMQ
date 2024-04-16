@@ -42,7 +42,8 @@ public class RabbitMqPersistentConnection : IDisposable
                 .WaitAndRetry(_tryCount, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
                     (ex, time) =>
                     {
-                        Console.WriteLine("ex => Event Bus TryConnect In RabbitMQ =>  " + ex);
+                        Console.WriteLine("Rabbit MQ ==>>> : Connection failed");
+                        Console.WriteLine("Rabbit MQ ==>>> : connection exception | Event Bus TryConnect In RabbitMQ | err :  " + ex);
                     });
 
             policy.Execute(() =>
@@ -51,6 +52,7 @@ public class RabbitMqPersistentConnection : IDisposable
             });
 
             if (!IsConnection) return false;
+            Console.WriteLine("Rabbit MQ ==>>> : Connection succeeded..."); 
             _connection.ConnectionShutdown += Connection_ConnectionShutdown; 
             _connection.CallbackException += Connection_CallbackException; 
             _connection.ConnectionBlocked += Connection_ConnectionBlocked; 

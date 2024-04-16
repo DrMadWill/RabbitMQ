@@ -79,8 +79,10 @@ public class EventBusRabbitMq : BaseEventBus
 
     public override void Subscribe<T, TH>()
     {
+        
         var eventName = typeof(T).Name;
         eventName = ProcessEventName(eventName);
+        Console.WriteLine("Rabbit MQ ==>>> : {0} event listening... ",eventName); 
         if (!SubManager.HasSubscriptionForEvent(eventName))
         {
             if (!_persistentConnection.IsConnection)
