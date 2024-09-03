@@ -1,6 +1,6 @@
-using DrMadWill.EventBus.Base.Events;
+using DrMAdWill.Core.BaseModels;
 
-namespace DrMadWill.EventBus.Base.Abstractions;
+namespace DrMAdWill.Core.Abstractions;
 
 // ReSharper disable once InconsistentNaming
 public interface IIntegrationEventHandler<TIntegrationEvent> : IntegrationEventHandler

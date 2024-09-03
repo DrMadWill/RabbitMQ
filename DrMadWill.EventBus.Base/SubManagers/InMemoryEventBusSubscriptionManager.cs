@@ -1,3 +1,5 @@
+using DrMAdWill.Core.Abstractions;
+using DrMAdWill.Core.BaseModels;
 using DrMadWill.EventBus.Base.Abstractions;
 using DrMadWill.EventBus.Base.Events;
 
@@ -7,7 +9,7 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
 {
     private readonly Dictionary<string, List<SubscriptionInfo>> _handlers;
     private readonly List<Type> _eventTypes;
-
+    private static readonly object _lockObject = new object();
     public event EventHandler<string>? OnEventRemoved;
 
     public Func<string, string> EventNameGetter;
@@ -21,16 +23,26 @@ public class InMemoryEventBusSubscriptionManager : IEventBusSubscriptionManager
 
     public bool IsEmpty => !_handlers.Keys.Any();
 
-    public void Clear() => _handlers.Clear();
+    public void Clear()
+    {
+        foreach (var key in _handlers.Keys)
+        {
+            RaiseOnEventRemoved(key);
+        }
+        _handlers.Clear();
+    }
 
     public void AddSubscription<T, TH>() where T : IntegrationEvent where TH : IIntegrationEventHandler<T>
     {
-        var eventName = GetEventKey<T>();
-        AddSubscription(typeof(TH), eventName);
-
-        if (!_eventTypes.Contains(typeof(T)))
+        lock (_lockObject)
         {
-            _eventTypes.Add(typeof(T));
+            var eventName = GetEventKey<T>();
+            AddSubscription(typeof(TH), eventName);
+
+            if (!_eventTypes.Contains(typeof(T)))
+            {
+                _eventTypes.Add(typeof(T));
+            }
         }
     }
 

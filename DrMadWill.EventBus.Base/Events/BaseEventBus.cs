@@ -1,3 +1,5 @@
+using DrMAdWill.Core.Abstractions;
+using DrMAdWill.Core.BaseModels;
 using DrMadWill.EventBus.Base.Abstractions;
 using DrMadWill.EventBus.Base.SubManagers;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,15 +9,17 @@ namespace DrMadWill.EventBus.Base.Events;
 
 public abstract class BaseEventBus : IEventBus
 {
-    public readonly IServiceProvider ServiceProvider;
-    public readonly IEventBusSubscriptionManager SubManager;
-    public EventBusConfig EventBusConfig;
+    private readonly IServiceProvider ServiceProvider;
+    protected readonly IEventBusSubscriptionManager SubManager;
+    protected EventBusConfig EventBusConfig;
+    private bool _isLog = false;
 
-    public BaseEventBus(EventBusConfig config, IServiceProvider serviceProvider)
+    public BaseEventBus(EventBusConfig config, IServiceProvider serviceProvider,bool isLog)
     {
         EventBusConfig = config;
         ServiceProvider = serviceProvider;
         SubManager = new InMemoryEventBusSubscriptionManager(ProcessEventName);
+        _isLog = isLog;
     }
 
     public virtual string ProcessEventName(string eventName)
@@ -41,9 +45,15 @@ public abstract class BaseEventBus : IEventBus
 
     public async Task<bool> ProcessEvent(string eventName, string message)
     {
+        
         eventName = ProcessEventName(eventName);
-        var processed = false;
-        if (!SubManager.HasSubscriptionForEvent(eventName)) return processed;
+        Log(nameof(ProcessEvent),$"{eventName} stared ...");
+        if (!SubManager.HasSubscriptionForEvent(eventName))
+        {
+            Log(nameof(ProcessEvent),"HasSubscriptionForEvent in not found",$"{eventName} end ...");
+            return false;
+        }
+
         var subscriptions = SubManager.GetHandlerForEvent(eventName);
         using (var scope = ServiceProvider.CreateScope())
         {
@@ -51,15 +61,22 @@ public abstract class BaseEventBus : IEventBus
             {
                 try
                 {
+                    Log(nameof(ProcessEvent),$"handler created ...");
                     var handler = ServiceProvider.GetService(subscription.HandlerType);
-                    if (handler == null) continue;
+                    if (handler == null)
+                    {
+                        Log(nameof(ProcessEvent),$"handler is null ...");
+                        continue;
+                    }
+
                     var eventType =
                         SubManager.GetEventTypeByName(
                             $"{EventBusConfig.EventNamePrefix}{eventName}{EventBusConfig.EventNameSuffix}");
                     var integrationEvent = JsonConvert.DeserializeObject(message, eventType);
                     var concreteType = typeof(IIntegrationEventHandler<>).MakeGenericType(eventType);
+                    Log(nameof(ProcessEvent),$"installation method ...");
                     await (Task)concreteType.GetMethod("Handle").Invoke(handler, new object[] { integrationEvent });
-
+                    Log(nameof(ProcessEvent),$"handler end ...");
                 }
                 catch (Exception e)
                 {
@@ -68,9 +85,7 @@ public abstract class BaseEventBus : IEventBus
                 }
             }
         }
-
-        processed = true;
-        return processed;
+        return true;
     }
 
     public abstract void Publish(IntegrationEvent @event);
@@ -78,4 +93,13 @@ public abstract class BaseEventBus : IEventBus
     public abstract void Subscribe<T, TH>() where T : IntegrationEvent where TH : IIntegrationEventHandler<T>;
 
     public abstract void UnSubscribe<T, TH>() where T : IntegrationEvent where TH : IIntegrationEventHandler<T>;
+    
+    
+    private void Log(params string[] logs)
+    {
+        if (_isLog)
+        {
+            Console.WriteLine("BaseEventBus >>>>>>>>>>>>> : " +string.Join(" | ",logs));
+        }
+    }
 }

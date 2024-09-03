@@ -1,5 +1,6 @@
 using System.Net.Sockets;
 using System.Text;
+using DrMAdWill.Core.BaseModels;
 using DrMadWill.EventBus.Base;
 using DrMadWill.EventBus.Base.Events;
 using Newtonsoft.Json;
@@ -14,31 +15,37 @@ public class EventBusRabbitMq : BaseEventBus
 {
     private readonly RabbitMqPersistentConnection _persistentConnection;
     private readonly IModel _consumerChannel;
-    public EventBusRabbitMq(EventBusConfig config, IServiceProvider serviceProvider, IConnectionFactory connectionFactory) : base(config, serviceProvider)
+    private bool _isLog = false;
+    public EventBusRabbitMq(EventBusConfig config, IServiceProvider serviceProvider, IConnectionFactory connectionFactory,bool isLog = false) : base(config, serviceProvider,isLog)
     {
-        _persistentConnection = new RabbitMqPersistentConnection(connectionFactory,config.ConnectionRetryCount);
+        _isLog = isLog;
+        _persistentConnection = RabbitMqPersistentConnection.Instance(connectionFactory,config.ConnectionRetryCount,isLog); // Singleton
         _consumerChannel = CreateConsumerChannel();
         SubManager.OnEventRemoved += Submanger_OnEventRemoved;
     }
 
     private void Submanger_OnEventRemoved(object? sender, string eventName)
     {
+        Log(nameof(Submanger_OnEventRemoved) ,"Started..");
         eventName = ProcessEventName(eventName);
         TryConnect();
-
+        Log(nameof(Submanger_OnEventRemoved) + $"{eventName} remove stared..");
         _consumerChannel.QueueUnbind(queue:eventName,exchange:EventBusConfig.DefaultTopicName,routingKey:eventName);
-
+        Log(nameof(Submanger_OnEventRemoved) + $"{eventName} remove finished..");
         if (SubManager.IsEmpty)
         {
+            Log(nameof(Submanger_OnEventRemoved) + $"{eventName} _consumerChannel closing started..");
             _consumerChannel.Close();
+            Log(nameof(Submanger_OnEventRemoved) + $"{eventName} _consumerChannel closed..");
+
         }
 
     }
 
     public override void Publish(IntegrationEvent @event)
     {
+        Log(nameof(Publish),$" stared..");
         TryConnect();
-
         var policy = Policy.Handle<BrokerUnreachableException>()
             .Or<SocketException>()
             .WaitAndRetry(EventBusConfig.ConnectionRetryCount,
@@ -49,6 +56,7 @@ public class EventBusRabbitMq : BaseEventBus
                 });
         var eventName = @event.GetType().Name;
         eventName = ProcessEventName(eventName);
+        Log(nameof(Publish),$"{eventName} publishing stared..");
         
         _consumerChannel.ExchangeDeclare(exchange:EventBusConfig.DefaultTopicName,type:"direct");
        
@@ -58,23 +66,23 @@ public class EventBusRabbitMq : BaseEventBus
         var body = Encoding.UTF8.GetBytes(message);
         policy.Execute(() =>
         {
-
+            Log(nameof(Publish),$"Execute publishing stared..");
             var props = _consumerChannel.CreateBasicProperties();
             props.DeliveryMode = 2;
             
-            // _consumerChannel.QueueDeclare(queue: GetSubName(eventName),
-            //     durable: true,
-            //     exclusive: false,
-            //     autoDelete: false,
-            //     arguments: null);
-            //
-            // _consumerChannel.QueueBind(queue: GetSubName(eventName), exchange: EventBusConfig.DefaultTopicName,
-            //     routingKey: eventName);
+            _consumerChannel.QueueDeclare(queue: GetSubName(eventName),
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+            
+            _consumerChannel.QueueBind(queue: GetSubName(eventName), exchange: EventBusConfig.DefaultTopicName,
+                routingKey: eventName);
             
             _consumerChannel.BasicPublish(exchange: EventBusConfig.DefaultTopicName, routingKey: eventName,
                 mandatory: true, basicProperties: props, body: body);
-        }); 
-
+            Log(nameof(Publish),$"Execute publishing ended..");
+        });
     }
 
     public override void Subscribe<T, TH>()
@@ -128,35 +136,50 @@ public class EventBusRabbitMq : BaseEventBus
         }
         catch (Exception exception)
         {
-            // logging
+            Log($"{exception} occur",eventName,message);
             
         } 
         _consumerChannel.BasicAck(e.DeliveryTag,multiple:false);
-
-        
     }
 
     public override void UnSubscribe<T, TH>()
     {
         SubManager.RemoveSubscription<T,TH>();
+       
     }
 
     private IModel CreateConsumerChannel()
     {
+        Log(nameof(CreateConsumerChannel),$" stared..");
         TryConnect();
-
+        Log(nameof(CreateConsumerChannel),$" CreateModel stared..");
         var channel = _persistentConnection.CreateModel();
+        Log(nameof(CreateConsumerChannel),$" DefaultTopicName adding..");
         channel.ExchangeDeclare(exchange: EventBusConfig.DefaultTopicName,type :"direct");
-
+        Log(nameof(CreateConsumerChannel),$" ended..");
         return channel;
     }
     
-    private void TryConnect()
+    private  void TryConnect()
     {
+        Log(nameof(TryConnect),$" stared..");
         if (!_persistentConnection.IsConnection)
         {
+            Log(nameof(TryConnect),$" _persistentConnection TryConnect stared..");
             _persistentConnection.TryConnect();
+            Log(nameof(TryConnect),$" _persistentConnection TryConnect ended..");
         } 
+        Log(nameof(TryConnect),$" ended..");
     }
+    
+    private void Log(params string[] logs)
+    {
+        if (_isLog)
+        {
+            Console.WriteLine("EventBusRabbitMq >>>>>>>>>>>>> : " + string.Join(" | ", logs));
+        }
+    }
+    
+    
 
 }

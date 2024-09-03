@@ -1,3 +1,5 @@
+using DrMAdWill.Core.Abstractions;
+using DrMAdWill.Core.BaseModels;
 using DrMadWill.EventBus.Base.Events;
 
 namespace DrMadWill.EventBus.Base.Abstractions;

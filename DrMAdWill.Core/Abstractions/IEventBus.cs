@@ -1,6 +1,6 @@
-using DrMadWill.EventBus.Base.Events;
+using DrMAdWill.Core.BaseModels;
 
-namespace DrMadWill.EventBus.Base.Abstractions;
+namespace DrMAdWill.Core.Abstractions;
 
 public interface IEventBus
 {

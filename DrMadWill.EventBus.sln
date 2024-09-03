@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrMadWill.EventBus.Test", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrMadWill.EventBus.RabbitMQ", "DrMadWill.EventBus.RabbitMQ\DrMadWill.EventBus.RabbitMQ.csproj", "{8F3350FD-2693-4D75-A1C1-0E6A27D3E78B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrMAdWill.Core", "DrMAdWill.Core\DrMAdWill.Core.csproj", "{C20CCB46-E311-4398-AE48-DEDC16A3081C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{8F3350FD-2693-4D75-A1C1-0E6A27D3E78B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8F3350FD-2693-4D75-A1C1-0E6A27D3E78B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8F3350FD-2693-4D75-A1C1-0E6A27D3E78B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C20CCB46-E311-4398-AE48-DEDC16A3081C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C20CCB46-E311-4398-AE48-DEDC16A3081C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C20CCB46-E311-4398-AE48-DEDC16A3081C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C20CCB46-E311-4398-AE48-DEDC16A3081C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
